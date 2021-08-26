@@ -1,0 +1,68 @@
+correction to question 1
+
+A regular COUNT is more suitable here.
+
+SELECT DISTINCT film_title, category_name, COUNT(*) as rental_count
+FROM(SELECT  f.title film_title, r.rental_id rent_id,  c.name category_name
+    FROM rental r
+    JOIN inventory i
+    ON i.inventory_id =r.inventory_id
+    JOIN film f
+    ON f.film_id = i.film_id
+    JOIN film_category fc
+    ON fc.film_id = f.film_id
+    JOIN category c
+    ON c.category_id = fc.category_id
+    WHERE c.name = 'Animation' OR c.name = 'Children' OR c.name = 'Classics'
+    OR c.name = 'Comedy' OR c.name = 'Family' OR c.name = 'Music') sub
+    GROUP BY 1,2
+ORDER BY 2,1;
+
+correction to question 4
+
+A solid first attempt on this query!
+
+The trick here is that we are interested in the top 10 paying customers. i.e
+
+First, find the overall top 10 paying customers for the entire dataset. This is where your CTE comes in!
+How many payments did these customers make on a monthly basis in 2007?
+Here's one way you could go about answering this:
+
+WITH top_customers AS
+(
+SELECT CONCAT(c.first_name, ' ', c.last_name) AS fullname,
+c.customer_id,
+SUM(amount) AS sum_amount
+FROM customer AS c
+JOIN payment AS p
+ON c.customer_id = p.customer_id
+GROUP BY 1, 2
+ORDER BY 3 DESC
+LIMIT 10)
+SELECT DATE_TRUNC('month',p.payment_date) AS pay_mon, tc.fullname,
+COUNT(*) AS pay_count,
+SUM(amount) AS pay_amount      
+FROM top_customers AS tc
+JOIN payment AS p
+ON tc.customer_id = p.customer_id
+WHERE DATE_PART('year', p.payment_Date) = 2007
+GROUP BY 1, 2
+ORDER BY 2, 1
+
+correction to question 3
+
+For this particular question, we are interested in the movies rented out. The JOIN to the inventory table leads to inaccurate results because some of those movies were NOT rented out.
+A better alternative will be to get the store_id from the staff_table instead of the inventory table.
+Here's how you can JOIN to the staff table to get the store_id
+
+
+SELECT str.store_id store_id, 
+        DATE_PART('year', r.rental_date) rental_year, DATE_PART('month', r.rental_date) rental_month,
+        COUNT(r.*) rent_count, LAG(COUNT(r.*)) OVER (ORDER BY COUNT(r.*))
+FROM rental AS r
+JOIN staff AS stf
+ON  r.staff_id = stf.staff_id
+JOIN store AS str
+ON str.store_id = stf.store_id
+GROUP BY 3, 2, 1
+ORDER BY 4;

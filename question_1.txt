@@ -1,0 +1,18 @@
+/*a query that lists each movie, the film category it is classified in, and the number of times it has been rented out.*/
+/*workspace + question set #1---question 1*/
+
+SELECT DISTINCT film_title, category_name, COUNT ( rent_id) OVER 
+ 		( ORDER BY film_title ) AS rental_count
+FROM(SELECT  f.title film_title, r.rental_id rent_id,  c.name category_name
+	FROM rental r
+	JOIN inventory i
+	ON i.inventory_id =r.inventory_id
+	JOIN film f
+	ON f.film_id = i.film_id
+	JOIN film_category fc
+	ON fc.film_id = f.film_id
+	JOIN category c
+	ON c.category_id = fc.category_id
+	WHERE c.name = 'Animation' OR c.name = 'Children' OR c.name = 'Classics'
+	OR c.name = 'Comedy' OR c.name = 'Family' OR c.name = 'Music') sub
+ORDER BY 2;
