@@ -1,0 +1,12 @@
+/*a query that returns the store ID for the store, the year and month and the number of rental orders each store has fulfilled for that month. Your table should include a column for each of the following: year, month, store ID and count of rental orders fulfilled during that month.*/
+/*workspace + question set#2---question no 1*/
+
+
+SSELECT i.store_id store_id, 
+		DATE_PART('year', r.rental_date) rental_year, DATE_PART('month', r.rental_date) rental_month,
+		COUNT(r.*) rent_count, LAG(COUNT(r.*)) OVER (ORDER BY COUNT(r.*))
+FROM inventory i
+	JOIN rental r
+	ON i.inventory_id = r.inventory_id
+GROUP BY 3, 2, 1
+ORDER BY 4; 
